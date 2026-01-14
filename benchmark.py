@@ -72,6 +72,7 @@ if __name__ == "__main__":
     
     print(f"baseline time: {np.min(baseline_times):.0f} ns")
     print(f"optimized time: {np.min(optimized_times):.0f} ns")
+    print(f"speedup: {np.min(baseline_times) / np.min(optimized_times):.2f}x")
     print(f"optimized wins: {wins}/{n_trials} ({win_rate:.1%})")
     print(f"binomial test p-value: {p_value:.6f}")
     

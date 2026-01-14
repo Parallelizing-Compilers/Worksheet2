@@ -7,12 +7,10 @@
 #include <vector>
 #include "npy.hpp"
 #include "json.hpp"
-#include <filesystem>
 #include <fstream>
 #include <cmath>
 
 using json = nlohmann::json;
-namespace fs = std::filesystem;
 
 #define TIME_MAX 5.0
 #define TRIAL_MAX 10000
@@ -130,7 +128,7 @@ int main(int argc, char **argv){
     }
 
     // Load the input matrix A
-    auto A = npy_load_vector<double>(fs::path(input)/"A.npy");
+    auto A = npy_load_vector<double>(input + "/A.npy");
     
     // Assume A is a square matrix, calculate dimensions from vector size
     int total_size = A.size();
@@ -156,11 +154,11 @@ int main(int argc, char **argv){
     );
 
     // Save results
-    npy_store_vector<double>(fs::path(output)/"B.npy", B, false);
+    npy_store_vector<double>(output + "/B.npy", B, false);
 
     json measurements;
     measurements["time"] = time;
-    std::ofstream measurements_file(fs::path(output)/"measurements.json");
+    std::ofstream measurements_file(output + "/measurements.json");
     measurements_file << measurements;
     measurements_file.close();
     

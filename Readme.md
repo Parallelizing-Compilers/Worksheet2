@@ -34,6 +34,7 @@ Optimize convolution code and benchmark its performance against a baseline imple
     - Memory access patterns: Ensure data is accessed in a cache-friendly manner.
     - Common subexpression elimination: Reduce redundant calculations within the convolution loops by computing the x offsets into a temporary array, then using that to compute the y offsets.
     - Parallelization: Use multi-threading (e.g., OpenMP) to parallelize the convolution operation across multiple CPU cores.
-What optimizations did you implement?
+
+    What optimizations did you implement?
 
 3. After making optimizations, re-run the benchmark script to evaluate performance improvements. What's the best speedup you can achieve?

@@ -15,18 +15,18 @@ using json = nlohmann::json;
 #define TIME_MAX 5.0
 #define TRIAL_MAX 10000
 
-/*
-  Benchmark a function `run` by running it multiple times and measuring the
-  time. The function `setup` is called before each run to prepare the input
-  data. The function returns the minimum time in nanoseconds of all the runs.
-  Runs at most `TRIAL_MAX` times or until the total time exceeds `TIME_MAX`.
-*/
 template <typename Setup, typename Run>
-long long benchmark(Setup setup, Run run){
+long long benchmark(Setup setup, Run run, std::vector<double>& times, double time_max = TIME_MAX, int max_trials = TRIAL_MAX){
   auto time_total = std::chrono::high_resolution_clock::duration(0);
   auto time_min = std::chrono::high_resolution_clock::duration(0);
+  // Initial run to avoid measuring setup overhead
+  setup();
+  run();
   int trial = 0;
-  while(trial < TRIAL_MAX){
+  times.clear(); // Clear any existing data
+  times.reserve(max_trials); // Reserve space for efficiency
+  
+  while(trial < max_trials){
     setup();
     auto tic = std::chrono::high_resolution_clock::now();
     run();
@@ -35,15 +35,17 @@ long long benchmark(Setup setup, Run run){
       exit(EXIT_FAILURE);
     }
     auto time = std::chrono::duration_cast<std::chrono::nanoseconds>(toc-tic);
+    times.push_back(static_cast<double>(time.count())); // Add time to vector
     trial++;
     if(trial == 1 || time < time_min){
       time_min = time;
     }
     time_total += time;
-    if(time_total.count() * 1e-9 > TIME_MAX){
+    if(time_total.count() * 1e-9 > time_max){
       break;
     }
   }
+  times.shrink_to_fit(); // Resize to actual number of trials
   return (long long) time_min.count();
 }
 
@@ -59,6 +61,8 @@ int main(int argc, char **argv){
         {"help", no_argument, 0, 'h'},
         {"input", required_argument, 0, 'i'},
         {"output", required_argument, 0, 'o'},
+        {"time-max", required_argument, 0, 't'},
+        {"trial-max", required_argument, 0, 'r'},
         {"verbose", no_argument, 0, 'v'},
         {0, 0, 0, 0}
     };
@@ -68,8 +72,10 @@ int main(int argc, char **argv){
     int c;
     std::string input, output;
     bool verbose = false;
+    double time_max = TIME_MAX;
+    int max_trials = TRIAL_MAX;
     
-    while ((c = getopt_long(argc, argv, "hi:o:v", long_options, &option_index)) != -1) {
+    while ((c = getopt_long(argc, argv, "hi:o:v:t:r:", long_options, &option_index)) != -1) {
         switch (c) {
             case 'h':
                 std::cout << "Options:" << std::endl;
@@ -77,6 +83,8 @@ int main(int argc, char **argv){
                 std::cout << "  -i, --input     Specify the path for the inputs" << std::endl;
                 std::cout << "  -o, --output    Specify the path for the outputs" << std::endl;
                 std::cout << "  -v, --verbose   Print verbose output" << std::endl;
+                std::cout << "  -t, --time-max  Maximum total time for benchmarking (seconds)" << std::endl;
+                std::cout << "  -r, --trial-max Maximum number of trials for benchmarking" << std::endl;
                 std::cout << "  --              Kernel-specific arguments" << std::endl;
                 exit(0);
             case 'i':
@@ -87,6 +95,12 @@ int main(int argc, char **argv){
                 break;
             case 'v':
                 verbose = true;
+                break;
+            case 't':
+                time_max = std::stod(optarg);
+                break;
+            case 'r':
+                max_trials = std::stoi(optarg);
                 break;
             case '?':
                 break;
@@ -105,6 +119,8 @@ int main(int argc, char **argv){
     if (verbose) {
         std::cout << "Input path: " << input << std::endl;
         std::cout << "Output path: " << output << std::endl;
+        std::cout << "Max time: " << time_max << " seconds" << std::endl;
+        std::cout << "Max trials: " << max_trials << std::endl;
     }
 
     // Load the input matrix A - inline npy load
@@ -124,6 +140,7 @@ int main(int argc, char **argv){
     // Create output vector B
     std::vector<double> B(m * n, 0.0);
 
+    std::vector<double> times;
     // Benchmark the convolution
     auto time = benchmark(
     []() {
@@ -133,6 +150,7 @@ int main(int argc, char **argv){
             // Call the core C convolution function with array data
             conv_kernel(A.data(), B.data(), m, n);
         }
+      , times, time_max, max_trials
     );
 
     // Save results as 2D array - inline npy store
@@ -141,6 +159,7 @@ int main(int argc, char **argv){
 
     json measurements;
     measurements["time"] = time;
+    measurements["times"] = times;
     std::ofstream measurements_file(output + "/measurements.json");
     measurements_file << measurements;
     measurements_file.close();

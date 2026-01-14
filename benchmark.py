@@ -4,7 +4,7 @@ import numpy as np
 import shutil
 import subprocess
 
-def run_conv(kernel, A):
+def run_conv(kernel, A, n_trials=10):
     # Clean up and create directories
     if os.path.exists("input"):
         shutil.rmtree("input")
@@ -18,7 +18,7 @@ def run_conv(kernel, A):
     np.save('input/A.npy', A)
     
     # Run the kernel with correct arguments
-    cmd = [f'./{kernel}', '--input', 'input', '--output', 'output']
+    cmd = [f'./{kernel}', '--input', 'input', '--output', 'output', '--trial-max', str(n_trials), '--time-max', 'inf']
     result = subprocess.run(cmd, capture_output=True, text=True)
     
     if result.returncode != 0:
@@ -38,7 +38,8 @@ if __name__ == "__main__":
     input_data = np.random.rand(m, n).astype(np.float64)
 
     print("Running C benchmark...")
-    baseline_results = run_conv('conv_baseline', input_data)
+    baseline_results = run_conv('conv_baseline', input_data, n_trials=10)
     
     print(f"C execution time: {baseline_results['time']} nanoseconds")
+    print(f"C execution trials: {baseline_results['times']} nanoseconds")
     print(f"Output shape: {np.array(baseline_results['B']).shape}")

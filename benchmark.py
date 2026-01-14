@@ -52,7 +52,7 @@ if __name__ == "__main__":
             print(f"Progress: {i}/{len(kernels)}")
         
         result = run_conv(kernel, input_data, n_trials=1)
-        time_ns = result['times'][0]  # Get the single measurement
+        time_ns = result['time']  # Get the min time from benchmark
         
         if kernel == 'conv_baseline':
             baseline_times.append(time_ns)

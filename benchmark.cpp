@@ -16,15 +16,13 @@ using json = nlohmann::json;
 #define TRIAL_MAX 10000
 
 template <typename Setup, typename Run>
-long long benchmark(Setup setup, Run run, std::vector<double>& times, double time_max = TIME_MAX, int max_trials = TRIAL_MAX){
+long long benchmark(Setup setup, Run run, double time_max = TIME_MAX, int max_trials = TRIAL_MAX){
   auto time_total = std::chrono::high_resolution_clock::duration(0);
   auto time_min = std::chrono::high_resolution_clock::duration(0);
   // Initial run to avoid measuring setup overhead
   setup();
   run();
   int trial = 0;
-  times.clear(); // Clear any existing data
-  times.reserve(max_trials); // Reserve space for efficiency
   
   while(trial < max_trials){
     setup();
@@ -35,7 +33,6 @@ long long benchmark(Setup setup, Run run, std::vector<double>& times, double tim
       exit(EXIT_FAILURE);
     }
     auto time = std::chrono::duration_cast<std::chrono::nanoseconds>(toc-tic);
-    times.push_back(static_cast<double>(time.count())); // Add time to vector
     trial++;
     if(trial == 1 || time < time_min){
       time_min = time;
@@ -45,7 +42,6 @@ long long benchmark(Setup setup, Run run, std::vector<double>& times, double tim
       break;
     }
   }
-  times.shrink_to_fit(); // Resize to actual number of trials
   return (long long) time_min.count();
 }
 
@@ -140,7 +136,6 @@ int main(int argc, char **argv){
     // Create output vector B
     std::vector<double> B(m * n, 0.0);
 
-    std::vector<double> times;
     // Benchmark the convolution
     auto time = benchmark(
     []() {
@@ -150,7 +145,7 @@ int main(int argc, char **argv){
             // Call the core C convolution function with array data
             conv_kernel(A.data(), B.data(), m, n);
         }
-      , times, time_max, max_trials
+      , time_max, max_trials
     );
 
     // Save results as 2D array - inline npy store
@@ -159,7 +154,6 @@ int main(int argc, char **argv){
 
     json measurements;
     measurements["time"] = time;
-    measurements["times"] = times;
     std::ofstream measurements_file(output + "/measurements.json");
     measurements_file << measurements;
     measurements_file.close();

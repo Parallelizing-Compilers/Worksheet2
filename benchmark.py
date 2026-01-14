@@ -77,6 +77,6 @@ if __name__ == "__main__":
     print(f"binomial test p-value: {p_value:.6f}")
     
     if p_value > 0.05:
-        print("No significant difference detected")
+        print("No significant difference detected.")
     else:
-        print("Significant difference detected !")
+        print("Significant difference detected!")

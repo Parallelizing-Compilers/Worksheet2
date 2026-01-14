@@ -74,50 +74,6 @@ void npy_store_vector(std::string fname, std::vector<T> vec, bool fortran_order)
 template std::vector<double> npy_load_vector<double>(std::string fname);
 template void npy_store_vector<double>(std::string fname, std::vector<double> vec, bool fortran_order);
 
-// Implementation of the C wrapper that handles I/O and benchmarking
-extern "C" {
-    void experiment_conv_c(const char* input_path, const char* output_path, bool verbose) {
-        // Load the input matrix A
-        auto A = npy_load_vector<double>(fs::path(input_path)/"A.npy");
-        
-        // Assume A is a square matrix, calculate dimensions from vector size
-        int total_size = A.size();
-        int m = static_cast<int>(std::sqrt(total_size));
-        int n = m; // Assuming square matrix
-        
-        if (verbose) {
-            std::cout << "Matrix dimensions: " << m << "x" << n << std::endl;
-        }
-        
-        // Create output vector B
-        std::vector<double> B(m * n, 0.0);
-
-        // Benchmark the convolution
-        auto time = benchmark(
-        []() {
-            // Setup function - nothing to do here
-        },
-            [&A, &B, &m, &n]() {
-                // Call the core C convolution function with array data
-                experiment_conv_impl(A.data(), B.data(), m, n);
-            }
-        );
-
-        // Save results
-        npy_store_vector<double>(fs::path(output_path)/"B.npy", B, false);
-
-        json measurements;
-        measurements["time"] = time;
-        std::ofstream measurements_file(fs::path(output_path)/"measurements.json");
-        measurements_file << measurements;
-        measurements_file.close();
-        
-        if (verbose) {
-            std::cout << "Convolution completed. Time: " << time << " ns" << std::endl;
-        }
-    }
-}
-
 // Main function - benchmark harness with inline argument parsing
 int main(int argc, char **argv){
     // Define the long options
@@ -173,6 +129,44 @@ int main(int argc, char **argv){
         std::cout << "Output path: " << output << std::endl;
     }
 
-    experiment_conv_c(input.c_str(), output.c_str(), verbose);
+    // Load the input matrix A
+    auto A = npy_load_vector<double>(fs::path(input)/"A.npy");
+    
+    // Assume A is a square matrix, calculate dimensions from vector size
+    int total_size = A.size();
+    int m = static_cast<int>(std::sqrt(total_size));
+    int n = m; // Assuming square matrix
+    
+    if (verbose) {
+        std::cout << "Matrix dimensions: " << m << "x" << n << std::endl;
+    }
+    
+    // Create output vector B
+    std::vector<double> B(m * n, 0.0);
+
+    // Benchmark the convolution
+    auto time = benchmark(
+    []() {
+        // Setup function - nothing to do here
+    },
+        [&A, &B, &m, &n]() {
+            // Call the core C convolution function with array data
+            experiment_conv_impl(A.data(), B.data(), m, n);
+        }
+    );
+
+    // Save results
+    npy_store_vector<double>(fs::path(output)/"B.npy", B, false);
+
+    json measurements;
+    measurements["time"] = time;
+    std::ofstream measurements_file(fs::path(output)/"measurements.json");
+    measurements_file << measurements;
+    measurements_file.close();
+    
+    if (verbose) {
+        std::cout << "Convolution completed. Time: " << time << " ns" << std::endl;
+    }
+
     return 0;
 }

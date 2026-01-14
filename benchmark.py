@@ -43,21 +43,23 @@ if __name__ == "__main__":
     baseline_times = []
     optimized_times = []
     
-    # Interleave the tests to avoid systematic bias
-    kernels = ['conv_baseline', 'conv_optimized'] * n_trials
-    np.random.shuffle(kernels)  # Randomize order
-    
-    for i, kernel in enumerate(kernels):
-        if i % 100 == 0:
-            print(f"Progress: {i}/{len(kernels)}")
+    for trial in range(n_trials):
+        if trial % 100 == 0:
+            print(f"Progress: {trial}/{n_trials}")
         
-        result = run_conv(kernel, input_data, n_trials=1)
-        time_ns = result['time']  # Get the min time from benchmark
+        # Randomly decide order for this trial to avoid systemic bias
+        order = np.random.choice(['baseline_first', 'optimized_first'])
         
-        if kernel == 'conv_baseline':
-            baseline_times.append(time_ns)
+        if order == 'baseline_first':
+            baseline_result = run_conv('conv_baseline', input_data, n_trials=1)
+            baseline_times.append(baseline_result['time'])
+            optimized_result = run_conv('conv_optimized', input_data, n_trials=1)
+            optimized_times.append(optimized_result['time'])
         else:
-            optimized_times.append(time_ns)
+            optimized_result = run_conv('conv_optimized', input_data, n_trials=1)
+            optimized_times.append(optimized_result['time'])
+            baseline_result = run_conv('conv_baseline', input_data, n_trials=1)
+            baseline_times.append(baseline_result['time'])
     
     baseline_times = np.array(baseline_times)
     optimized_times = np.array(optimized_times)

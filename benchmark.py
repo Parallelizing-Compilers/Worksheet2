@@ -38,20 +38,42 @@ if __name__ == "__main__":
     m, n = 100, 100
     input_data = np.random.rand(m, n).astype(np.float64)
 
-    n_trials = 10000
-
-    print("Running C benchmark...")
-    baseline_results = run_conv('conv_baseline', input_data, n_trials=n_trials)
-    optimized_results = run_conv('conv_optimized', input_data, n_trials=n_trials)
-
-    optimized_trials = np.array(optimized_results['times'])
-    baseline_trials = np.array(baseline_results['times'])
-    win_count = np.sum(optimized_trials < baseline_trials)
-    win_prob = win_count / n_trials
-    p_value = scipy.stats.binomtest(win_count, n_trials, 0.5).pvalue
+    n_trials = 1000  # Reduced for interleaved testing
     
-    print(f"baseline time: {baseline_results['time']} nanoseconds")
-    print(f"optimized time: {optimized_results['time']} nanoseconds")
-    print(f"Speedup: {baseline_results['time'] / optimized_results['time']:.2f}x")
-    print(f"Measured win frequency: {win_prob:.2%}")
-    print(f"P-value: {p_value}")
+    baseline_times = []
+    optimized_times = []
+    
+    # Interleave the tests to avoid systematic bias
+    kernels = ['conv_baseline', 'conv_optimized'] * n_trials
+    np.random.shuffle(kernels)  # Randomize order
+    
+    for i, kernel in enumerate(kernels):
+        if i % 100 == 0:
+            print(f"Progress: {i}/{len(kernels)}")
+        
+        result = run_conv(kernel, input_data, n_trials=1)
+        time_ns = result['times'][0]  # Get the single measurement
+        
+        if kernel == 'conv_baseline':
+            baseline_times.append(time_ns)
+        else:
+            optimized_times.append(time_ns)
+    
+    baseline_times = np.array(baseline_times)
+    optimized_times = np.array(optimized_times)
+    
+    wins = np.sum(optimized_times < baseline_times)
+    win_rate = wins / n_trials
+    
+    # Use binomial test (null hypothesis: win rate = 0.5)
+    p_value = scipy.stats.binomtest(wins, n_trials, 0.5).pvalue
+    
+    print(f"baseline time: {np.min(baseline_times):.0f} ns")
+    print(f"optimized time: {np.min(optimized_times):.0f} ns")
+    print(f"optimized wins: {wins}/{n_trials} ({win_rate:.1%})")
+    print(f"binomial test p-value: {p_value:.6f}")
+    
+    if p_value > 0.05:
+        print("No significant difference detected")
+    else:
+        print("Significant difference detected !")

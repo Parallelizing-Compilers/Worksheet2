@@ -35,10 +35,10 @@ def run_conv(kernel, A, n_trials=10):
     return measurements
 
 if __name__ == "__main__":
-    m, n = 512, 512
+    m, n = 128, 128
     input_data = np.random.rand(m, n).astype(np.float64)
 
-    n_trials = 1000  # Reduced for interleaved testing
+    n_trials = 100
     
     baseline_times = []
     optimized_times = []

@@ -13,7 +13,7 @@ clean:
 conv.o: conv.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-benchmark.o: benchmark.cpp benchmark.hpp
+benchmark.o: benchmark.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 conv: benchmark.o conv.o

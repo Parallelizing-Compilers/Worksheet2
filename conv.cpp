@@ -10,24 +10,7 @@ void experiment_conv(benchmark_params_t params);
 
 int main(int argc, char **argv){
     auto params = parse(argc, argv);
-    auto A_desc = json::parse(std::ifstream(fs::path(params.input)/"A.bspnpy"/"binsparse.json"))["binsparse"]; 
-    auto x_desc = json::parse(std::ifstream(fs::path(params.input)/"x.bspnpy"/"binsparse.json"))["binsparse"]; 
-
-    //print format
-    if (A_desc["format"] != "CSR") {throw std::runtime_error("Only CSR format for A is supported");}
-    if (x_desc["format"] != "DVEC") {throw std::runtime_error("Only dense format for x is supported");}
-    if (A_desc["data_types"]["pointers_to_1"] == "int32" &&
-        A_desc["data_types"]["values"] == "float64") {
-            experiment_spmv_csr<double, int32_t>(params);
-    } else if (A_desc["data_types"]["pointers_to_1"] == "int64" &&
-        A_desc["data_types"]["values"] == "float64") {
-            experiment_spmv_csr<double, int64_t>(params);
-    } else {
-        std::cout << "pointers_to_1_type: " << A_desc["data_types"]["pointers_to_1"] << std::endl;
-        std::cout << "values_type: " << A_desc["data_types"]["values"] << std::endl;
-        throw std::runtime_error("Unsupported data types");
-    }
-
+    experiment_conv(params);
     return 0;
 }
 

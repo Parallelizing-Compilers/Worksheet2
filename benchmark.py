@@ -35,7 +35,7 @@ def run_conv(kernel, A, n_trials=10):
     return measurements
 
 if __name__ == "__main__":
-    m, n = 100, 100
+    m, n = 512, 512
     input_data = np.random.rand(m, n).astype(np.float64)
 
     n_trials = 1000  # Reduced for interleaved testing

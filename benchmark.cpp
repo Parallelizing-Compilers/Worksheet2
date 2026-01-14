@@ -7,8 +7,10 @@
 
 namespace fs = std::filesystem;
 
-// Forward declaration of the core convolution function
-void experiment_conv_impl(const std::vector<double>& A, std::vector<double>& B, int m, int n);
+// Forward declaration of the core C convolution function
+extern "C" {
+    void experiment_conv_impl(const double* A, double* B, int m, int n);
+}
 
 // Move npy functions implementation here
 template <typename T>
@@ -114,8 +116,8 @@ extern "C" {
             // Setup function - nothing to do here
         },
             [&A, &B, &m, &n]() {
-                // Call the core convolution function
-                experiment_conv_impl(A, const_cast<std::vector<double>&>(B), m, n);
+                // Call the core C convolution function with array data
+                experiment_conv_impl(A.data(), B.data(), m, n);
             }
         );
 

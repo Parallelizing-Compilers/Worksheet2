@@ -1,11 +1,9 @@
-#include "benchmark.hpp"
-#include <cmath>
-#include <algorithm>
+#include <string.h>
 
-// C++ implementation function - simplified to just core computation
-void experiment_conv_impl(const std::vector<double>& A, std::vector<double>& B, int m, int n) {
+// C implementation function - pure C with arrays
+void experiment_conv_impl(const double* A, double* B, int m, int n) {
     // Clear B for the computation
-    std::fill(B.begin(), B.end(), 0.0);
+    memset(B, 0, m * n * sizeof(double));
     
     // Perform convolution with 3x3 kernel
     for(int x = 0; x < m; x++){

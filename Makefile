@@ -1,13 +1,20 @@
 CC = gcc
-LD = ld
+CXX = g++
 CXXFLAGS += -std=c++20
+CFLAGS += 
 LDLIBS +=
 
-all: spmv
+all: conv
 
 clean:
-	rm -rf spmv
+	rm -rf conv
 	rm -rf *.o *.dSYM *.trace
 
-spmv: spmv.o
-	$(CXX) $(CXXFLAGS) -o $@ $< $(LDLIBS)
+conv.o: conv.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+benchmark.o: benchmark.cpp benchmark.hpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+conv: benchmark.o conv.o
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDLIBS)

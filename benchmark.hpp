@@ -54,8 +54,10 @@ void npy_store_vector(std::string fname, std::vector<T> vec, bool fortran_order 
 
 void experiment(std::string input, std::string output, int verbose);
 
-// Forward declaration for simplified convolution function
-void experiment_conv_impl(const std::vector<double>& A, std::vector<double>& B, int m, int n);
+// Forward declaration for C convolution function
+extern "C" {
+    void experiment_conv_impl(const double* A, double* B, int m, int n);
+}
 
 struct benchmark_params_t {
   std::string input;

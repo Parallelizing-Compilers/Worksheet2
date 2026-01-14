@@ -4,17 +4,23 @@ CXXFLAGS += -std=c++20
 CFLAGS += 
 LDLIBS +=
 
-all: conv
+all: conv_baseline conv_optimized
 
 clean:
-	rm -rf conv
+	rm -rf conv_baseline conv_optimized
 	rm -rf *.o *.dSYM *.trace
 
-conv.o: conv.c
+conv_baseline.o: conv_baseline.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+conv_optimized.o: conv_optimized.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 benchmark.o: benchmark.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-conv: benchmark.o conv.o
+conv_baseline: benchmark.o conv_baseline.o
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDLIBS)
+
+conv_optimized: benchmark.o conv_optimized.o
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDLIBS)

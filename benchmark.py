@@ -38,7 +38,7 @@ if __name__ == "__main__":
     input_data = np.random.rand(m, n).astype(np.float64)
 
     print("Running C benchmark...")
-    baseline_results = run_conv('conv', input_data)
+    baseline_results = run_conv('conv_baseline', input_data)
     
     print(f"C execution time: {baseline_results['time']} nanoseconds")
     print(f"Output shape: {np.array(baseline_results['B']).shape}")

@@ -1,22 +1,44 @@
 import json
 import os
 import numpy as np
+import shutil
+import subprocess
 
-def run_benchmark(kernel, input):
-    os.mkdir("input")
-    np.save('input/A.npy', input)
-    os.mkdir("output")
-    cmd = f'./{kernel} --input input/A.npy --output output/B.npy'
-    os.system(cmd)
-    output = np.load('output/B.npy')
-    measurements = json.load(open('output/measurements.json'))
-    measurements['output'] = output
+def run_conv(kernel, A):
+    # Clean up and create directories
+    if os.path.exists("input"):
+        shutil.rmtree("input")
+    if os.path.exists("output"):
+        shutil.rmtree("output")
+    
+    os.makedirs("input")
+    os.makedirs("output")
+    
+    # Save input data
+    np.save('input/A.npy', A)
+    
+    # Run the kernel with correct arguments
+    cmd = [f'./{kernel}', '--input', 'input', '--output', 'output']
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    
+    if result.returncode != 0:
+        print(f"Error running {kernel}:")
+        print("STDOUT:", result.stdout)
+        print("STDERR:", result.stderr)
+        raise RuntimeError(f"Kernel {kernel} execution failed")
+    
+    B = np.load('output/B.npy')
+    with open('output/measurements.json', 'r') as f:
+        measurements = dict(json.load(f))
+    measurements['B'] = B
     return measurements
 
 if __name__ == "__main__":
-    m, n = 512, 512
-    input = np.random.rand(m, n).astype(np.float64)
+    m, n = 100, 100
+    input_data = np.random.rand(m, n).astype(np.float64)
 
     print("Running C benchmark...")
-    baseline_results = run_benchmark('conv', input)
-    print(f"C execution time: {baseline_results['time']} seconds")
+    baseline_results = run_conv('conv', input_data)
+    
+    print(f"C execution time: {baseline_results['time']} nanoseconds")
+    print(f"Output shape: {np.array(baseline_results['B']).shape}")

@@ -8,8 +8,7 @@ Optimize convolution code and benchmark its performance against a baseline imple
 - `benchmark.py`: Benchmarking script to compare performance of baseline and optimized implementations.
 
 ## Installation
-- Install Poetry for Python dependency management: https://python-poetry.org/docs/#installation
-- Install required Python packages using Poetry:
+- If you have a version of python with numpy and scipy, you can skip this step. Otherwise, you can install Poetry for Python dependency management at https://python-poetry.org/docs/#installation, and then install required Python packages using Poetry:
     ```bash
     poetry install --no-root
     ```
@@ -22,8 +21,10 @@ Optimize convolution code and benchmark its performance against a baseline imple
 1. Run the benchmark script to compare the performance of the baseline and optimized convolution implementations:
 
    ```bash
-   python3 benchmark.py
+   poetry run python3 benchmark.py
    ```
+
+   (You can leave off the `poetry run` if you have the dependencies installed in your global Python environment.)
 
     What p-value do you get? Is there a significant difference between the two implementations?
 

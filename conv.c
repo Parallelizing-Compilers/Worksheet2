@@ -1,7 +1,6 @@
 #include <string.h>
 
-// C implementation function - pure C with arrays
-void experiment_conv_impl(const double* A, double* B, int m, int n) {
+void conv_kernel(const double* A, double* B, int m, int n) {
     // Clear B for the computation
     memset(B, 0, m * n * sizeof(double));
     

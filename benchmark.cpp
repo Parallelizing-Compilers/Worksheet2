@@ -49,7 +49,7 @@ long long benchmark(Setup setup, Run run){
 
 // Forward declaration of the core C convolution function
 extern "C" {
-    void experiment_conv_impl(const double* A, double* B, int m, int n);
+    void conv_kernel(const double* A, double* B, int m, int n);
 }
 
 // Move npy functions implementation here
@@ -149,7 +149,7 @@ int main(int argc, char **argv){
     },
         [&A, &B, &m, &n]() {
             // Call the core C convolution function with array data
-            experiment_conv_impl(A.data(), B.data(), m, n);
+            conv_kernel(A.data(), B.data(), m, n);
         }
     );
 

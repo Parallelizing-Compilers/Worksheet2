@@ -52,26 +52,6 @@ extern "C" {
     void conv_kernel(const double* A, double* B, int m, int n);
 }
 
-// Move npy functions implementation here
-template <typename T>
-std::vector<T> npy_load_vector(std::string fname) {
-  std::vector<T> vec;
-  std::vector<unsigned long> shape;
-  bool fortran_order;
-  npy::LoadArrayFromNumpy<T>(fname, shape, fortran_order, vec);
-  return vec;
-}
-
-template <typename T>
-void npy_store_vector(std::string fname, std::vector<T> vec, bool fortran_order) {
-    std::vector<unsigned long> shape = {static_cast<unsigned long>(vec.size())};
-    npy::SaveArrayAsNumpy(fname, fortran_order, shape.size(), shape.data(), vec);
-}
-
-// Explicit template instantiations
-template std::vector<double> npy_load_vector<double>(std::string fname);
-template void npy_store_vector<double>(std::string fname, std::vector<double> vec, bool fortran_order);
-
 // Main function - benchmark harness with inline argument parsing
 int main(int argc, char **argv){
     // Define the long options
@@ -127,13 +107,15 @@ int main(int argc, char **argv){
         std::cout << "Output path: " << output << std::endl;
     }
 
-    // Load the input matrix A
-    auto A = npy_load_vector<double>(input + "/A.npy");
+    // Load the input matrix A - inline npy load
+    std::vector<double> A;
+    std::vector<unsigned long> input_shape;
+    bool input_fortran_order;
+    npy::LoadArrayFromNumpy<double>(input + "/A.npy", input_shape, input_fortran_order, A);
     
-    // Assume A is a square matrix, calculate dimensions from vector size
-    int total_size = A.size();
-    int m = static_cast<int>(std::sqrt(total_size));
-    int n = m; // Assuming square matrix
+    // Get dimensions from loaded shape
+    int m = static_cast<int>(input_shape[0]);
+    int n = static_cast<int>(input_shape[1]);
     
     if (verbose) {
         std::cout << "Matrix dimensions: " << m << "x" << n << std::endl;
@@ -153,8 +135,9 @@ int main(int argc, char **argv){
         }
     );
 
-    // Save results
-    npy_store_vector<double>(output + "/B.npy", B, false);
+    // Save results as 2D array - inline npy store
+    std::vector<unsigned long> output_shape = {static_cast<unsigned long>(m), static_cast<unsigned long>(n)};
+    npy::SaveArrayAsNumpy(output + "/B.npy", false, output_shape.size(), output_shape.data(), B);
 
     json measurements;
     measurements["time"] = time;

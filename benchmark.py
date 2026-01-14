@@ -55,11 +55,13 @@ if __name__ == "__main__":
             baseline_times.append(baseline_result['time'])
             optimized_result = run_conv('conv_optimized', input_data, n_trials=1)
             optimized_times.append(optimized_result['time'])
+            assert np.allclose(baseline_result['B'], optimized_result['B']), "Results do not match!"
         else:
             optimized_result = run_conv('conv_optimized', input_data, n_trials=1)
             optimized_times.append(optimized_result['time'])
             baseline_result = run_conv('conv_baseline', input_data, n_trials=1)
             baseline_times.append(baseline_result['time'])
+            assert np.allclose(baseline_result['B'], optimized_result['B']), "Results do not match!"
     
     baseline_times = np.array(baseline_times)
     optimized_times = np.array(optimized_times)

@@ -11,7 +11,7 @@ Optimize convolution code and benchmark its performance against a baseline imple
 - Install Poetry for Python dependency management: https://python-poetry.org/docs/#installation
 - Install required Python packages using Poetry:
     ```bash
-    poetry install -- no-root
+    poetry install --no-root
     ```
 - Ensure you have a C compiler (e.g., `gcc`) installed to compile the benchmarking harness.
 
